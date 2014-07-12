@@ -38,7 +38,7 @@ public class PlayerHand {
 
 	// Dealer hides one card
 	public void dealerSayHand() {
-		System.out.println("Dealer's hand:");
+		System.out.println("\nDealer's hand:");
 		System.out.println("?"); // hide first card
 		System.out.println(hand.get(1).toString() + '\n'); // show second card
 	}

@@ -13,7 +13,7 @@ public class Deck {
 	public void createDeck() {
 
 		int numCard = 0; // numCard for current card index
-		
+
 		// Outer = number of Decks, Middle = suit, Inner = value
 		for (int i = 0; i < numOfDecks; i++) {
 			for (int s = 0; s < 4; s++) {
@@ -35,8 +35,8 @@ public class Deck {
 		for (int i = 0; i < 1000000; i++) {
 
 			// Get two random indices (0 to 51)
-			int first = (int) (Math.random() * (52*numOfDecks));
-			int second = (int) (Math.random() * (52*numOfDecks));
+			int first = (int) (Math.random() * (52 * numOfDecks));
+			int second = (int) (Math.random() * (52 * numOfDecks));
 			Card temp = d[first];
 			d[first] = d[second];
 			d[second] = temp;

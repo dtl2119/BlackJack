@@ -9,9 +9,10 @@ public class Game {
 	int bet;
 	int round;
 	String reply;
+	ArrayList<Integer> results;
+	int dealerResult;
 
 	public Game() {
-
 		// Create two players for the game
 		person = new PlayerHand(100); // Give player 100 chips
 		dealer = new PlayerHand();
@@ -19,24 +20,23 @@ public class Game {
 		input = new Scanner(System.in);
 		bet = 1;
 		round = 0;
-
+		results = new ArrayList<Integer>();
+		dealerResult = 0;
 	}
 
 	public void play() {
 
 		// Shuffle 5-Deck every 10 rounds
 		if (round % 10 == 0) {
-			// Reset deck and hands
-			reset();
+			// Create and setup deck
+			gameDeck.createDeck();
+			gameDeck.shuffle();
 			round = 0;
 		}
-
 		round++;
 
-		person.hand.clear();
-		dealer.hand.clear();
-		ArrayList<Integer> results = new ArrayList<Integer>();
-		int dealerResult;
+		// Clear hands and totals
+		reset();
 
 		person.dealHand(gameDeck);
 		dealer.dealHand(gameDeck);
@@ -86,7 +86,6 @@ public class Game {
 			return;
 		}
 
-		System.out.println();
 		dealer.dealerSayHand();
 
 		if (person.check() == 21) {
@@ -98,58 +97,70 @@ public class Game {
 
 		System.out.println("Player's turn ");
 
-		if (canSplit(person.hand)) {
+		if (canSplit(person)) {
 			while (true) {
 				System.out
-						.println("Would you like to (1) hit, (2) stand, or (3) split?");
+						.println("Would you like to (1) hit, (2) stand, (3) surrender, (4) double down, or (5) split?");
+				reply = input.next();
+				if (reply.equals("1") || reply.equals("2") || reply.equals("3")
+						|| reply.equals("4") || reply.equals("5"))
+					break;
+
+				System.out
+						.print("Invalid Response.  Please enter 1, 2, 3, or 4\n");
+			}
+		} else if (canDouble(person)) {
+			while (true) {
+				System.out
+						.println("Would you like to (1) hit, (2) stand, (3) surrender, or (4) double down");
+				reply = input.next();
+				if (reply.equals("1") || reply.equals("2") || reply.equals("3")
+						|| reply.equals("4"))
+					break;
+
+				System.out
+						.print("Invalid Response.  Please enter 1, 2, 3, or 4\n");
+			}
+		} else {
+			while (true) {
+				System.out
+						.println("Would you like to (1) hit, (2) stand, or (3) surrender?");
 				reply = input.next();
 				if (reply.equals("1") || reply.equals("2") || reply.equals("3"))
 					break;
 
 				System.out
-						.print("Invalid Response.  Please enter 1, 2, or 3\n");
-			}
-		} else {
-
-			while (true) {
-				System.out.println("Would you like to (1) hit or (2) stand?");
-				reply = input.next();
-				if (reply.equals("1") || reply.equals("2"))
-					break;
-
-				System.out
-						.print("Invalid Response.  Please enter either 1 or 2.\n");
+						.print("Invalid Response.  Please enter either 1, 2, or 3\n");
 			}
 		}
 
-		if (reply.equals("1") || reply.equals("2")) {
-			// Player decides to hit
-			if (reply.equals("1")) {
-				// Hit until stand, and then add total into results
-
-				results.add(playerHits(person));
-			} else {
-				results.add(person.check());
-			}
-
-			// Only simulate dealer if player didn't bust
-			if (results.get(0) <= 21) {
-				dealerResult = simulateDealer();
-			} else {
-				dealerResult = dealer.check();
-			}
-
-			// Compare Results and deal with bet
-			System.out.println("\nResults:");
-			System.out.println("Dealer (" + dealerResult + ")\nPlayer ("
-					+ results.get(0) + ")");
+		switch (reply) {
+		case "1":
+			// When done hitting, add total to results ArrayList
+			results.add(playerHits(person));
+			dealerResult = simulateDealer();
 			giveResults(results.get(0), dealerResult);
-
-		}// end 1 or 2
-
-		if (reply.equals("3")) {
-
-			// Divide into two seperate hands
+			break;
+		case "2":
+			// stand --> add total to results ArrayList
+			results.add(person.check());
+			dealerResult = simulateDealer();
+			giveResults(results.get(0), dealerResult);
+			break;
+		case "3":
+			System.out.println("Surrendered! ");
+			System.out.println("Dealer Wins! (Lost " + bet / 2 + " credit)");
+			person.changeChips(-1 * bet / 2);
+			return;
+		case "4":
+			System.out.println("Doubled Down");
+			doubleDown(person);
+			results.add(person.check());
+			dealerResult = simulateDealer();
+			giveResults(results.get(0), dealerResult);
+			break;
+		case "5":
+			// Divide into two separate hands
 			PlayerHand person1 = new PlayerHand();
 			person1.hand.add(person.hand.get(1));
 			person.hand.remove(1);
@@ -170,32 +181,30 @@ public class Game {
 			}
 
 			// First hand results
-			System.out.println("\nResults for first hand:");
-			System.out.println("Dealer (" + dealerResult + ")\nPlayer ("
-					+ results.get(0) + ")");
+			System.out.print("\n(First Hand)");
 			giveResults(results.get(0), dealerResult);
-			System.out.println();
 
 			// Second hand results
-			System.out.println("Results for second hand:");
-			System.out.println("Dealer (" + dealerResult + ")\nPlayer ("
-					+ results.get(1) + ")");
+			System.out.print("\n(Second Hand)");
 			giveResults(results.get(1), dealerResult);
-		}
+			break;
+		}// End switch
 
 	}// End play()
 
-	// Shuffle 5-Deck
+	// Reset for new game
 	private void reset() {
-		// Create and setup deck
-		gameDeck.createDeck();
-		gameDeck.shuffle();
-
+		person.hand.clear();
+		dealer.hand.clear();
+		results.clear();
+		dealerResult = 0;
 	}
 
 	// Method to print results and reward/collect bets
 	private void giveResults(int pScore, int dScore) {
 
+		System.out.println("\nResults:");
+		System.out.println("Dealer (" + dScore + ")\nPlayer (" + pScore + ")");
 		if (pScore > 21) {
 			System.out.println("Player Bust! (Lost " + bet + " credit)");
 			person.changeChips(-1 * bet);
@@ -212,9 +221,17 @@ public class Game {
 			person.changeChips(-1 * bet);
 		}
 
-	}// End giveResults
+	}
 
-	// Returns the total sum of cards
+	private int doubleDown(PlayerHand p) {
+		bet *= 2;
+		int total = 0;
+		p.hit(gameDeck);
+		total = p.check();
+		return total;
+	}
+
+	// Keep asking to hit, and returns hand total once player stands
 	private int playerHits(PlayerHand p) {
 		int total;
 		while (true) {
@@ -243,34 +260,45 @@ public class Game {
 			}
 		}
 
-	}
+	}// End playerHits()
 
-	// Returns true if player is allowed to split (same card)
-	private boolean canSplit(ArrayList<Card> h) {
-		if (h.get(0).value == h.get(1).value)
+	// Make sure player has enough chips to double their bet
+	private boolean canDouble(PlayerHand p) {
+		if (p.chips >= 2 * bet)
 			return true;
-		else
-			return false;
+
+		return false;
 	}
 
-	// Returns dealer's score after simulation
+	// Returns true if player's hand is a pair
+	private boolean canSplit(PlayerHand p) {
+		if (p.hand.get(0).value == p.hand.get(1).value && canDouble(p))
+			return true;
+
+		return false;
+	}
+
+	// Simulate dealer and return their hand total
 	private int simulateDealer() {
 
 		System.out.println("Dealer's turn.\n");
 		System.out.println("Dealer reveals hand");
 		dealer.sayHand();
 
-		// Simulate Dealer: must hit < 17
-		while (dealer.check() < 17) {
+		// Only simulate dealer if player didn't bust
+		if (results.get(0) <= 21) {
+			// Must hit < 17
+			while (dealer.check() < 17) {
 
-			dealer.hit(gameDeck);
-			if (dealer.check() > 21) {
-				// System.out.println("Dealer busts!");
-				return dealer.check();
-			} else if (dealer.check() == 21) {
-				// System.out.println("Dealer got 21!");
-				return dealer.check();
+				dealer.hit(gameDeck);
+				if (dealer.check() > 21) {
+					dealerResult = dealer.check();
+				} else if (dealer.check() == 21) {
+					dealerResult = dealer.check();
+				}
 			}
+		} else {
+			dealerResult = dealer.check();
 		}
 
 		return dealer.check();
