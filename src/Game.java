@@ -260,7 +260,7 @@ public class Game {
 			}
 		}
 
-	}// End playerHits()
+	}// End 
 
 	// Make sure player has enough chips to double their bet
 	private boolean canDouble(PlayerHand p) {
@@ -286,19 +286,15 @@ public class Game {
 		dealer.sayHand();
 
 		// Only simulate dealer if player didn't bust
-		if (results.get(0) <= 21) {
-			// Must hit < 17
-			while (dealer.check() < 17) {
+		// Must hit < 17
+		while (dealer.check() < 17) {
 
-				dealer.hit(gameDeck);
-				if (dealer.check() > 21) {
-					dealerResult = dealer.check();
-				} else if (dealer.check() == 21) {
-					dealerResult = dealer.check();
-				}
+			dealer.hit(gameDeck);
+			if (dealer.check() > 21) {
+				dealerResult = dealer.check();
+			} else if (dealer.check() == 21) {
+				dealerResult = dealer.check();
 			}
-		} else {
-			dealerResult = dealer.check();
 		}
 
 		return dealer.check();
