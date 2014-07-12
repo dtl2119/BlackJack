@@ -55,10 +55,5 @@ public class Deck {
 
 	}
 
-	public void cheat() {
-		Card temp = d[1];
-		d[1] = d[13];
-		d[13] = temp;
-	}
 
 }
