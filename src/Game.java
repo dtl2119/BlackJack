@@ -173,12 +173,7 @@ public class Game {
 			person1.sayHand();
 			results.add(playerHits(person1));
 
-			// Only simulate dealer if at least one hand didn't bust
-			if (results.get(0) <= 21 || results.get(1) <= 21) {
-				dealerResult = simulateDealer();
-			} else {
-				dealerResult = dealer.check();
-			}
+			dealerResult = simulateDealer();
 
 			// First hand results
 			System.out.print("\n(First Hand)");
@@ -238,6 +233,7 @@ public class Game {
 			p.hit(gameDeck);
 			total = p.check();
 			if (total > 21) {
+				System.out.println("BUST\n");
 				return total;
 			} else if (total == 21) {
 				System.out.println("You got 21!");
@@ -260,7 +256,7 @@ public class Game {
 			}
 		}
 
-	}// End 
+	}// End
 
 	// Make sure player has enough chips to double their bet
 	private boolean canDouble(PlayerHand p) {
@@ -285,17 +281,19 @@ public class Game {
 		System.out.println("Dealer reveals hand");
 		dealer.sayHand();
 
-		// Only simulate dealer if player didn't bust
-		// Must hit < 17
-		while (dealer.check() < 17) {
-
-			dealer.hit(gameDeck);
-			if (dealer.check() > 21) {
-				dealerResult = dealer.check();
-			} else if (dealer.check() == 21) {
-				dealerResult = dealer.check();
-			}
+		// Don't simulate dealer if player bust
+		if (results.size() == 1 && results.get(0) > 21) {
+			return dealer.check();
 		}
+
+		// Don't simulate dealer when player splits and bust both hands
+		if (results.size() == 2 && results.get(0) > 21 && results.get(1) > 21) {
+			return dealer.check();
+		}
+
+		// Must hit < 17
+		while (dealer.check() < 17)
+			dealer.hit(gameDeck);
 
 		return dealer.check();
 
